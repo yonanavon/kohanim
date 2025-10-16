@@ -177,17 +177,16 @@
           );
 
           return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex items-center justify-center">
-              <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8">
-                <h1 className="text-3xl font-bold text-center mb-2 text-indigo-900">
-                  תרגול ברכת כהנים
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
+              <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-6">
+                <h1 className="text-2xl font-bold text-center mb-2 text-indigo-900">
+                  הטיית הראש של הש"ץ בעת אמירתו ברכת כהנים
                 </h1>
-                <p className="text-center text-gray-600 mb-6">
-                  {gameMode === 'training' ? 'דפדף בין המילים וראה את התנועות הנכונות' : 'בחר תנועה וכיוון לכל מילה'}
+                <p className="text-center text-gray-600 mb-4">{gameMode === 'training' ? 'דפדף בין המילים וראה את התנועות הנכונות' : 'בחר תנועה וכיוון לכל מילה'}
                 </p>
 
                 {gameStarted && (
-                  <div className="w-full bg-gray-200 rounded-full h-3 mb-8">
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
                     <div 
                       className="bg-indigo-600 h-3 rounded-full transition-all duration-300"
                       style={{ width: `${((currentStep + 1) / blessingSteps.length) * 100}%` }}
@@ -196,13 +195,13 @@
                 )}
 
                 {!gameStarted ? (
-                  <div className="text-center py-8">
-                    <div className="text-6xl mb-6">📖</div>
-                    <h2 className="text-2xl font-bold text-indigo-900 mb-6">
+                  <div className="text-center py-4">
+                    <div className="text-6xl mb-4">📖</div>
+                    <h2 className="text-2xl font-bold text-indigo-900 mb-4">
                       ברוכים הבאים למשחק תרגול ברכת כהנים
                     </h2>
                     
-                    <div className="text-right bg-blue-50 rounded-xl p-6 mb-6 max-w-xl mx-auto">
+                    <div className="text-right bg-blue-50 rounded-xl p-4 mb-4 max-w-xl mx-auto">
                       <h3 className="text-xl font-bold text-indigo-800 mb-4">איך משחקים?</h3>
                       <div className="space-y-3 text-gray-700">
                         <p><strong>מצב למידה:</strong> דפדף בין המילים עם החיצים וראה את התנועות הנכונות</p>
@@ -210,7 +209,7 @@
                       </div>
                     </div>
 
-                    <div className="text-gray-600 mb-8">
+                    <div className="text-gray-600 mb-6">
                       המשחק עובר על כל 13 המילים בברכת כהנים
                     </div>
 
@@ -241,13 +240,13 @@
                       </span>
                     </div>
 
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-6">
                       <div className="text-sm text-gray-500 mb-2">
                         מילה {currentStep + 1} מתוך {blessingSteps.length}
                       </div>
                       
-                      <div className="flex justify-center mb-4">
-                        <svg viewBox="0 0 300 400" className="w-48 h-64">
+                      <div className="flex justify-center mb-3">
+                        <svg viewBox="0 0 300 400" className="w-40 h-52">
                           <g id="body">
                             <path d="M 80 350 L 80 280 Q 85 265 100 260 L 150 240 L 200 260 Q 215 265 220 280 L 220 350 Q 220 360 210 360 L 90 360 Q 80 360 80 350 Z" 
                                   fill="#3a4a5a" stroke="#000" strokeWidth="3"/>
@@ -310,14 +309,14 @@
                         </svg>
                       </div>
 
-                      <div className="text-5xl font-bold text-indigo-900 mb-4">
+                      <div className="text-5xl font-bold text-indigo-900 mb-3">
                         {currentWord.word}
                       </div>
                     </div>
 
                     {gameMode === 'training' ? (
                       <>
-                        <div className="flex flex-col items-center gap-6 mb-8">
+                        <div className="flex flex-col items-center gap-4 mb-6">
                           <div className="flex flex-col gap-3">
                             {['זקיפה', 'הרכנה'].map((movement) => {
                               const isCorrect = movement === currentWord.movement;
@@ -340,7 +339,7 @@
                           <div className="w-full border-t-2 border-gray-300"></div>
 
                           <div className="flex gap-4">
-                            {['שמאל', 'אמצע', 'ימין'].map((direction) => {
+                            {['ימין', 'אמצע', 'שמאל'].map((direction) => {
                               const isCorrect = direction === currentWord.direction;
 
                               return (
@@ -383,7 +382,7 @@
                       </>
                     ) : (
                       <>
-                        <div className="flex flex-col items-center gap-6 mb-8">
+                        <div className="flex flex-col items-center gap-4 mb-6">
                           <div className="flex flex-col gap-3">
                             {['זקיפה', 'הרכנה'].map((movement) => {
                               const isSelected = selectedMovement === movement;
@@ -417,7 +416,7 @@
                           <div className="w-full border-t-2 border-gray-300"></div>
 
                           <div className="flex gap-4">
-                            {['שמאל', 'אמצע', 'ימין'].map((direction) => {
+                            {['ימין', 'אמצע', 'שמאל'].map((direction) => {
                               const isSelected = selectedDirection === direction;
                               const isCorrect = direction === currentWord.direction;
                               const showCorrect = showFeedback && isCorrect;
@@ -465,16 +464,16 @@
                     )}
                   </>
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🎉</div>
-                    <h2 className="text-3xl font-bold text-indigo-900 mb-4">
+                  <div className="text-center py-6">
+                    <div className="text-6xl mb-3">🎉</div>
+                    <h2 className="text-3xl font-bold text-indigo-900 mb-3">
                       כל הכבוד!
                     </h2>
                     <p className="text-xl text-gray-700 mb-2">
                       סיימת את כל הברכה ב{gameMode === 'training' ? 'מצב למידה' : 'מצב מבחן'}
                     </p>
                     {gameMode === 'test' && (
-                      <p className="text-2xl font-bold text-indigo-600 mb-8">
+                      <p className="text-2xl font-bold text-indigo-600 mb-6">
                         ציון: {score} מתוך {blessingSteps.length}
                       </p>
                     )}
