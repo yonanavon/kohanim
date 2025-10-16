@@ -446,20 +446,21 @@
                           </div>
                         </div>
 
-                        {showFeedback && (
-                          <div className={`text-center text-lg font-semibold mb-4 ${
-                            bothCorrect ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {bothCorrect ? (
-                              '✓ נכון מצוין!'
-                            ) : (
-                              <div>
-                                {!movementCorrect && <div>✗ תנועה נכונה: {currentWord.movement}</div>}
-                                {!directionCorrect && <div>✗ כיוון נכון: {currentWord.direction}</div>}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {/* Feedback Message - Fixed height to prevent layout shift */}
+                        <div className="text-center text-lg font-semibold mb-4 h-16 flex items-center justify-center">
+                          {showFeedback && (
+                            <div className={bothCorrect ? 'text-green-600' : 'text-red-600'}>
+                              {bothCorrect ? (
+                                '✓ נכון מצוין!'
+                              ) : (
+                                <div>
+                                  {!movementCorrect && <div>✗ תנועה נכונה: {currentWord.movement}</div>}
+                                  {!directionCorrect && <div>✗ כיוון נכון: {currentWord.direction}</div>}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </>
                     )}
                   </>
