@@ -3,689 +3,1314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משחק תרגול ברכת כהנים</title>
+    <title>ברכת כהנים · תרגול הטיות הראש</title>
     <meta name="description" content="משחק אינטראקטיבי לתרגול הטיות הראש של שליח הציבור בעת אמירת ברכת כהנים - מצב למידה ומצב מבחן.">
-    <meta name="theme-color" content="#4f46e5">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+    <meta name="theme-color" content="#05070f">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕯️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      /* ============================================================
+         מערכת עיצוב - "לילה וזהב"
+         כחול לילה עמוק, זהב חם, זכוכית. ללא תלות בפריימוורק CSS.
+         ============================================================ */
+      :root {
+        --ink-950: #04060d;
+        --ink-900: #070b16;
+        --ink-800: #0d1428;
+
+        --line:        rgba(255, 255, 255, .085);
+        --line-strong: rgba(255, 255, 255, .18);
+
+        --txt:       #eef1fb;
+        --txt-dim:   #9aa4c6;
+        --txt-faint: #68719a;
+
+        --gold-lo: #a97b2e;
+        --gold:    #e3c07f;
+        --gold-hi: #fff3d6;
+        --gold-glow: rgba(227, 192, 127, .45);
+
+        --jade:      #5ad6a8;
+        --jade-soft: rgba(90, 214, 168, .13);
+        --rose:      #f3808f;
+        --rose-soft: rgba(243, 128, 143, .13);
+
+        --glass:    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+        --radius:   22px;
+        --ease:     cubic-bezier(.22, .8, .28, 1);
+
+        --lift: 0 24px 60px -28px rgba(0,0,0,.9), 0 8px 20px -12px rgba(0,0,0,.7);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { height: 100%; }
+
+      body {
+        margin: 0;
+        padding: 0;
+        color: var(--txt);
+        font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        background:
+          radial-gradient(1100px 620px at 50% -12%, #1d2450 0%, transparent 62%),
+          linear-gradient(180deg, var(--ink-900) 0%, var(--ink-950) 100%);
+        background-attachment: fixed;
+      }
+
+      /* גרעיניות עדינה - מוסיפה עומק ומונעת מראה "שטוח" של גרדיאנט */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: .04;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 3px;
+      }
+
+      button { font: inherit; color: inherit; cursor: pointer; }
+      button:disabled { cursor: not-allowed; }
+
+      /* ---------------- פריסה ---------------- */
+
+      .shell {
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(16px, 4vw, 48px);
+      }
+
+      .card {
+        position: relative;
+        width: 100%;
+        max-width: 760px;
+        padding: clamp(24px, 5vw, 46px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(180deg, rgba(28,36,68,.72), rgba(10,15,32,.78));
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,.07),
+          0 50px 100px -40px rgba(0,0,0,.95),
+          0 20px 50px -30px rgba(0,0,0,.8);
+        overflow: hidden;
+        animation: rise .7s var(--ease) both;
+      }
+
+      /* קו אור זהוב דק בקצה העליון של הכרטיס */
+      .card::before {
+        content: "";
+        position: absolute;
+        inset-inline: 12%;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(18px) scale(.985); }
+        to   { opacity: 1; transform: none; }
+      }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: none; }
+      }
+
+      /* ---------------- טיפוגרפיה ---------------- */
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-size: .7rem;
+        font-weight: 600;
+        letter-spacing: .34em;
+        color: var(--gold);
+        text-transform: uppercase;
+        margin-bottom: 18px;
+      }
+      .eyebrow::before,
+      .eyebrow::after {
+        content: "";
+        height: 1px;
+        width: clamp(24px, 12%, 76px);
+        background: linear-gradient(90deg, transparent, rgba(227,192,127,.55));
+      }
+      .eyebrow::after { transform: scaleX(-1); }
+
+      .title {
+        margin: 0;
+        font-family: 'Frank Ruhl Libre', Georgia, 'Times New Roman', serif;
+        font-weight: 500;
+        font-size: clamp(1.35rem, 4.2vw, 1.95rem);
+        line-height: 1.35;
+        text-align: center;
+        letter-spacing: -.01em;
+      }
+
+      .subtitle {
+        margin: 12px 0 0;
+        text-align: center;
+        color: var(--txt-dim);
+        font-size: clamp(.9rem, 2.4vw, 1rem);
+        font-weight: 300;
+      }
+
+      .rule {
+        height: 1px;
+        margin: 26px 0;
+        background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+      }
+
+      /* ---------------- מסך פתיחה ---------------- */
+
+      .home { text-align: center; }
+
+      .home__mark {
+        width: 92px;
+        height: 92px;
+        margin: 4px auto 26px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(227,192,127,.28);
+        background: radial-gradient(circle at 50% 35%, rgba(227,192,127,.2), rgba(227,192,127,.02) 70%);
+        box-shadow: 0 0 50px -10px var(--gold-glow), inset 0 0 30px -12px var(--gold-glow);
+        animation: breathe 5s ease-in-out infinite;
+      }
+
+      @keyframes breathe {
+        0%, 100% { box-shadow: 0 0 44px -14px var(--gold-glow), inset 0 0 30px -14px var(--gold-glow); }
+        50%      { box-shadow: 0 0 66px -8px var(--gold-glow),  inset 0 0 34px -10px var(--gold-glow); }
+      }
+
+      .panel {
+        text-align: start;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--glass);
+        padding: 22px 24px;
+        margin: 26px 0;
+      }
+      .panel h3 {
+        margin: 0 0 14px;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .28em;
+        color: var(--gold);
+      }
+      .panel p {
+        margin: 0 0 10px;
+        color: var(--txt-dim);
+        font-size: .95rem;
+        font-weight: 300;
+        line-height: 1.65;
+      }
+      .panel p:last-child { margin-bottom: 0; }
+      .panel strong { color: var(--txt); font-weight: 600; }
+
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-top: 26px;
+      }
+
+      .mode {
+        --accent: var(--gold);
+        --accent-soft: var(--gold-glow);
+        position: relative;
+        text-align: start;
+        padding: 24px 22px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--glass);
+        transition: transform .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+        overflow: hidden;
+      }
+      .mode--learn { --accent: var(--jade); --accent-soft: rgba(90,214,168,.4); }
+
+      .mode::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity .4s var(--ease);
+        background: radial-gradient(420px 160px at 50% 120%, var(--accent-soft), transparent 70%);
+      }
+      .mode:hover {
+        transform: translateY(-4px);
+        border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+        box-shadow: var(--lift), 0 0 40px -20px var(--accent-soft);
+      }
+      .mode:hover::after { opacity: .5; }
+
+      .mode__icon {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+        border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--accent);
+      }
+      .mode__name {
+        position: relative;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .mode__desc {
+        position: relative;
+        color: var(--txt-faint);
+        font-size: .86rem;
+        font-weight: 300;
+        line-height: 1.5;
+      }
+
+      .best {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(227,192,127,.28);
+        background: rgba(227,192,127,.07);
+        color: var(--gold);
+        font-size: .85rem;
+        font-weight: 500;
+      }
+
+      /* ---------------- סרגל התקדמות ---------------- */
+
+      .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--glass);
+        font-size: .76rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        color: var(--txt-dim);
+      }
+      .chip--gold  { border-color: rgba(227,192,127,.3); color: var(--gold); background: rgba(227,192,127,.07); }
+      .chip--jade  { border-color: rgba(90,214,168,.3);  color: var(--jade); background: rgba(90,214,168,.07); }
+
+      .counter {
+        direction: ltr;
+        unicode-bidi: isolate;
+        font-size: .82rem;
+        font-weight: 500;
+        color: var(--txt-faint);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: .12em;
+      }
+      .counter b { color: var(--gold); font-weight: 700; }
+
+      .rail {
+        position: relative;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.07);
+        overflow: visible;
+      }
+      .rail__fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--gold-lo), var(--gold) 55%, var(--gold-hi));
+        box-shadow: 0 0 14px -1px var(--gold-glow);
+        transition: width .6s var(--ease);
+      }
+      /* נקודת אור בראש הסרגל - ב-RTL היא נעה מימין לשמאל */
+      .rail__dot {
+        position: absolute;
+        top: 50%;
+        width: 7px;
+        height: 7px;
+        margin-top: -3.5px;
+        margin-inline-start: -3.5px;
+        border-radius: 50%;
+        background: var(--gold-hi);
+        box-shadow: 0 0 12px 2px var(--gold-glow);
+        transition: inset-inline-start .6s var(--ease);
+      }
+
+      /* ---------------- במת המילה ---------------- */
+
+      .stage { text-align: center; }
+
+      .figure-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        margin: 26px 0 8px;
+      }
+
+      .word {
+        margin: 6px 0 4px;
+        font-family: 'Frank Ruhl Libre', Georgia, serif;
+        font-weight: 700;
+        font-size: clamp(2.9rem, 11vw, 4.4rem);
+        line-height: 1.15;
+        letter-spacing: -.015em;
+        background: linear-gradient(178deg, #fffaf0 0%, var(--gold-hi) 26%, var(--gold) 62%, var(--gold-lo) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 3px 12px rgba(227,192,127,.20)) drop-shadow(0 14px 52px rgba(227,192,127,.10));
+        animation: wordIn .55s var(--ease) both;
+      }
+
+      @keyframes wordIn {
+        from { opacity: 0; transform: translateY(12px) scale(.97); filter: blur(6px) drop-shadow(0 3px 12px rgba(227,192,127,.20)) drop-shadow(0 14px 52px rgba(227,192,127,.10)); }
+        to   { opacity: 1; transform: none; filter: blur(0) drop-shadow(0 3px 12px rgba(227,192,127,.20)) drop-shadow(0 14px 52px rgba(227,192,127,.10)); }
+      }
+
+      .prompt {
+        color: var(--txt-faint);
+        font-size: .78rem;
+        font-weight: 500;
+        letter-spacing: .2em;
+        margin-bottom: 22px;
+      }
+
+      /* ---------------- כפתורי בחירה ---------------- */
+
+      .group { display: grid; gap: 10px; }
+      .group--row {
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+      }
+
+      .group__label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .26em;
+        color: var(--txt-faint);
+        margin-bottom: 12px;
+        text-align: center;
+      }
+
+      .opt {
+        position: relative;
+        padding: 17px 20px;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        background: var(--glass);
+        color: var(--txt);
+        font-size: 1.08rem;
+        font-weight: 600;
+        letter-spacing: .01em;
+        transition: transform .3s var(--ease), border-color .3s var(--ease),
+                    box-shadow .3s var(--ease), background .3s var(--ease), color .3s var(--ease);
+      }
+      .opt:hover:not(:disabled):not(.is-correct):not(.is-wrong) {
+        transform: translateY(-3px);
+        border-color: var(--line-strong);
+        box-shadow: var(--lift);
+      }
+      .opt:active:not(:disabled) { transform: translateY(-1px); }
+
+      .opt.is-selected {
+        border-color: rgba(227,192,127,.6);
+        background: rgba(227,192,127,.1);
+        color: var(--gold-hi);
+        box-shadow: 0 0 0 1px rgba(227,192,127,.2), 0 0 34px -14px var(--gold-glow);
+      }
+      .opt.is-correct {
+        border-color: rgba(90,214,168,.6);
+        background: var(--jade-soft);
+        color: var(--jade);
+        box-shadow: 0 0 0 1px rgba(90,214,168,.22), 0 0 40px -16px rgba(90,214,168,.7);
+      }
+      .opt.is-wrong {
+        border-color: rgba(243,128,143,.55);
+        background: var(--rose-soft);
+        color: var(--rose);
+        animation: shake .4s var(--ease);
+      }
+      .opt.is-muted { opacity: .32; }
+      .opt__icon { display: inline-block; vertical-align: -.18em; margin-inline-end: 8px; }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25%      { transform: translateX(-5px); }
+        75%      { transform: translateX(5px); }
+      }
+
+      /* ---------------- משוב ---------------- */
+
+      .feedback {
+        min-height: 62px;
+        display: grid;
+        place-items: center;
+        margin-top: 20px;
+        font-size: .98rem;
+        font-weight: 500;
+      }
+      .feedback__good { color: var(--jade); animation: fadeUp .35s var(--ease) both; }
+      .feedback__bad  { color: var(--rose); animation: fadeUp .35s var(--ease) both; display: grid; gap: 4px; }
+      .feedback__bad b { color: var(--gold); font-weight: 600; }
+
+      /* ---------------- ניווט מצב למידה ---------------- */
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        margin-top: 26px;
+      }
+      .nav__btn {
+        display: grid;
+        place-items: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: var(--glass);
+        color: var(--txt);
+        transition: transform .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease), color .3s var(--ease);
+      }
+      .nav__btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        color: var(--gold);
+        border-color: rgba(227,192,127,.45);
+        box-shadow: var(--lift), 0 0 30px -14px var(--gold-glow);
+      }
+      .nav__btn:disabled { opacity: .25; }
+      .nav__hint {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .74rem;
+        letter-spacing: .18em;
+        color: var(--txt-faint);
+        text-align: center;
+      }
+      .nav__hint kbd {
+        display: inline-block;
+        min-width: 22px;
+        padding: 2px 6px;
+        margin: 0 2px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: rgba(255,255,255,.05);
+        font-family: inherit;
+        font-size: .74rem;
+        color: var(--txt-dim);
+      }
+
+      /* ---------------- כפתורי פעולה ---------------- */
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 30px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 14px 26px;
+        border-radius: 13px;
+        border: 1px solid var(--line);
+        background: var(--glass);
+        color: var(--txt);
+        font-size: .95rem;
+        font-weight: 600;
+        transition: transform .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease);
+      }
+      .btn:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: var(--lift); }
+
+      .btn--gold {
+        border-color: transparent;
+        color: #2a1e07;
+        background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, #cfa257);
+        box-shadow: 0 10px 30px -14px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,.6);
+      }
+      .btn--gold:hover { box-shadow: 0 16px 40px -14px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,.6); }
+
+      .btn--ghost {
+        border-color: transparent;
+        background: none;
+        color: var(--txt-faint);
+        padding: 10px 14px;
+        font-weight: 500;
+        font-size: .85rem;
+      }
+      .btn--ghost:hover { color: var(--txt); transform: none; box-shadow: none; }
+
+      .footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 28px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+      }
+
+      /* ---------------- מסך סיום ---------------- */
+
+      .result { text-align: center; }
+
+      .ring { position: relative; width: 168px; height: 168px; margin: 6px auto 22px; }
+      .ring svg { transform: rotate(-90deg); }
+      .ring__track { stroke: rgba(255,255,255,.07); }
+      .ring__value {
+        stroke: url(#ringGrad);
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 10px var(--gold-glow));
+        transition: stroke-dashoffset 1.1s var(--ease);
+      }
+      .ring__center {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 2px;
+      }
+      .ring__num {
+        font-family: 'Frank Ruhl Libre', Georgia, serif;
+        font-size: 2.6rem;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        background: linear-gradient(180deg, var(--gold-hi), var(--gold) 60%, var(--gold-lo));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .ring__den { font-size: .72rem; letter-spacing: .22em; color: var(--txt-faint); }
+
+      .review {
+        text-align: start;
+        margin-top: 26px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--glass);
+        overflow: hidden;
+      }
+      .review__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--line);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .22em;
+        color: var(--rose);
+      }
+      .review__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px 20px;
+        border-bottom: 1px solid rgba(255,255,255,.05);
+      }
+      .review__row:last-child { border-bottom: none; }
+      .review__word {
+        font-family: 'Frank Ruhl Libre', Georgia, serif;
+        font-size: 1.22rem;
+        font-weight: 700;
+        color: var(--txt);
+        white-space: nowrap;
+      }
+      .review__answers { display: grid; gap: 3px; font-size: .8rem; text-align: end; }
+      .review__right { color: var(--jade); }
+      .review__wrong { color: var(--txt-faint); text-decoration: line-through; }
+
+      /* ---------------- דמות הש"ץ ---------------- */
+
+      .figure { width: clamp(160px, 42vw, 200px); height: auto; display: block; }
+
+      .figure__head { transition: transform .75s var(--ease); }
+
+      .dirs {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 16px;
+      }
+      .dirs::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        inset-inline: 16px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+      }
+      .dirs__dot {
+        position: relative;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.18);
+        transition: transform .55s var(--ease), background .55s var(--ease), box-shadow .55s var(--ease);
+      }
+      .dirs__dot.is-on {
+        background: var(--gold-hi);
+        box-shadow: 0 0 14px 3px var(--gold-glow);
+        transform: scale(1.6);
+      }
+
+      .meta__right {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .tally {
+        font-size: .82rem;
+        font-weight: 500;
+        color: var(--txt-faint);
+        letter-spacing: .04em;
+      }
+      .tally b {
+        color: var(--gold);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        margin-inline-start: 5px;
+      }
+
+      /* ---------------- מובייל ---------------- */
+
+      @media (max-width: 560px) {
+        .modes { grid-template-columns: 1fr; }
+        .group--row { grid-auto-flow: row; }
+        .meta { flex-direction: column; align-items: center; gap: 10px; }
+        .review__row { flex-direction: column; align-items: flex-start; gap: 6px; }
+        .review__answers { text-align: start; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: .01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: .01ms !important;
         }
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
+      }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <noscript>
-        <p style="text-align:center;padding:2rem;font-size:1.25rem">
-            כדי להפעיל את משחק תרגול ברכת כהנים יש לאפשר JavaScript בדפדפן.
-        </p>
+      <p style="text-align:center;padding:3rem 1.5rem;color:#eef1fb;font-size:1.2rem">
+        כדי להפעיל את משחק תרגול ברכת כהנים יש לאפשר JavaScript בדפדפן.
+      </p>
     </noscript>
     <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback } = React;
+      const { useState, useEffect, useRef, useCallback } = React;
 
-        const BLESSING_STEPS = [
-          { word: 'יברכך', direction: 'ימין', movement: 'הרכנה' },
-          { word: "השם", direction: 'ימין', movement: 'זקיפה' },
-          { word: 'וישמרך', direction: 'אמצע', movement: 'הרכנה' },
-          { word: 'יאר', direction: 'שמאל', movement: 'הרכנה' },
-          { word: "השם", direction: 'שמאל', movement: 'זקיפה' },
-          { word: 'פניו אליך', direction: 'שמאל', movement: 'הרכנה' },
-          { word: 'ויחנך', direction: 'אמצע', movement: 'הרכנה' },
-          { word: 'ישא', direction: 'אמצע', movement: 'הרכנה' },
-          { word: "השם", direction: 'אמצע', movement: 'זקיפה' },
-          { word: 'פניו אליך', direction: 'אמצע', movement: 'הרכנה' },
-          { word: 'וישם', direction: 'ימין', movement: 'הרכנה' },
-          { word: 'לך', direction: 'שמאל', movement: 'הרכנה' },
-          { word: 'שלום', direction: 'אמצע', movement: 'הרכנה' }
-        ];
+      const BLESSING_STEPS = [
+        { word: 'יברכך', direction: 'ימין', movement: 'הרכנה' },
+        { word: 'השם', direction: 'ימין', movement: 'זקיפה' },
+        { word: 'וישמרך', direction: 'אמצע', movement: 'הרכנה' },
+        { word: 'יאר', direction: 'שמאל', movement: 'הרכנה' },
+        { word: 'השם', direction: 'שמאל', movement: 'זקיפה' },
+        { word: 'פניו אליך', direction: 'שמאל', movement: 'הרכנה' },
+        { word: 'ויחנך', direction: 'אמצע', movement: 'הרכנה' },
+        { word: 'ישא', direction: 'אמצע', movement: 'הרכנה' },
+        { word: 'השם', direction: 'אמצע', movement: 'זקיפה' },
+        { word: 'פניו אליך', direction: 'אמצע', movement: 'הרכנה' },
+        { word: 'וישם', direction: 'ימין', movement: 'הרכנה' },
+        { word: 'לך', direction: 'שמאל', movement: 'הרכנה' },
+        { word: 'שלום', direction: 'אמצע', movement: 'הרכנה' }
+      ];
 
-        const MOVEMENTS = ['זקיפה', 'הרכנה'];
-        const DIRECTIONS = ['ימין', 'אמצע', 'שמאל'];
-        const START_POSITION = { movement: 'זקיפה', direction: 'אמצע' };
-        const FEEDBACK_MS = 1500;
-        const BEST_SCORE_KEY = 'kohanim.bestScore';
+      const MOVEMENTS = ['זקיפה', 'הרכנה'];
+      const DIRECTIONS = ['ימין', 'אמצע', 'שמאל'];
+      const START_POSITION = { movement: 'זקיפה', direction: 'אמצע' };
+      const FEEDBACK_MS = 1500;
+      const BEST_SCORE_KEY = 'kohanim.bestScore';
 
-        const readBestScore = () => {
-          try {
-            const raw = window.localStorage.getItem(BEST_SCORE_KEY);
-            const value = raw === null ? NaN : parseInt(raw, 10);
-            return Number.isFinite(value) ? value : null;
-          } catch (err) {
-            return null;
-          }
-        };
+      const readBestScore = () => {
+        try {
+          const raw = window.localStorage.getItem(BEST_SCORE_KEY);
+          const value = raw === null ? NaN : parseInt(raw, 10);
+          return Number.isFinite(value) ? value : null;
+        } catch (err) {
+          return null;
+        }
+      };
 
-        const writeBestScore = (value) => {
-          try {
-            window.localStorage.setItem(BEST_SCORE_KEY, String(value));
-          } catch (err) {
-            /* אחסון מקומי חסום - הציון פשוט לא נשמר */
-          }
-        };
+      const writeBestScore = (value) => {
+        try {
+          window.localStorage.setItem(BEST_SCORE_KEY, String(value));
+        } catch (err) {
+          /* אחסון מקומי חסום - הציון פשוט לא נשמר */
+        }
+      };
 
-        const ChevronRight = () => (
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        );
+      const pad = (n) => String(n).padStart(2, '0');
 
-        const ChevronLeft = () => (
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        );
+      /* ---------------- אייקונים ---------------- */
 
-        const Check = ({ size = 24 }) => (
-          <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block me-2" aria-hidden="true" focusable="false">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        );
+      const Icon = ({ d, size = 20, ...rest }) => (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+             aria-hidden="true" focusable="false" {...rest}>
+          {d}
+        </svg>
+      );
 
-        const X = ({ size = 24 }) => (
-          <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block me-2" aria-hidden="true" focusable="false">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        );
+      // ב-RTL ההתקדמות היא שמאלה: חץ שמאלה = הבא, חץ ימינה = הקודם.
+      const ArrowBack = (props) => <Icon {...props} d={<polyline points="9 18 15 12 9 6" />} size={props.size || 22} />;
+      const ArrowNext = (props) => <Icon {...props} d={<polyline points="15 18 9 12 15 6" />} size={props.size || 22} />;
+      const CheckIcon = (props) => <Icon {...props} d={<polyline points="20 6 9 17 4 12" />} />;
+      const CrossIcon = (props) => <Icon {...props} d={<g><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></g>} />;
+      const ReplayIcon = (props) => <Icon {...props} d={<g><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></g>} />;
+      const HomeIcon = (props) => <Icon {...props} d={<g><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></g>} />;
+      const BookIcon = (props) => <Icon {...props} d={<g><path d="M3 4.5h6a3 3 0 0 1 3 3V21a2.5 2.5 0 0 0-2.5-2.5H3Z" /><path d="M21 4.5h-6a3 3 0 0 0-3 3V21a2.5 2.5 0 0 1 2.5-2.5H21Z" /></g>} />;
+      const TargetIcon = (props) => <Icon {...props} d={<g><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.2" /></g>} />;
+      const CrownIcon = (props) => <Icon {...props} d={<g><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5Z" /><path d="M5 19h14" /></g>} size={props.size || 16} />;
 
-        const RotateCcw = ({ size = 20 }) => (
-          <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-            <polyline points="1 4 1 10 7 10"></polyline>
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-          </svg>
-        );
+      /* ---------------- דמות הש"ץ ----------------
+         דמות מסוגננת ומופשטת: טלית על הכתפיים, ראש נקי שהטיותיו נקראות בבירור.
+         רק קבוצת הראש מסתובבת, סביב ציר בבסיס הצוואר.
+      */
+      const Cantor = ({ movement, direction }) => {
+        const rotate = direction === 'ימין' ? 15 : direction === 'שמאל' ? -15 : 0;
+        const translateY = movement === 'הרכנה' ? 18 : 0;
 
-        const HeadFigure = ({ movement, direction }) => {
-          const isDown = movement === 'הרכנה';
-          const rotate = direction === 'ימין' ? 15 : direction === 'שמאל' ? -15 : 0;
-          const translateY = isDown ? 20 : 0;
+        return (
+          <div>
+            <svg className="figure" viewBox="0 64 300 336" role="img"
+                 aria-label={`שליח ציבור, הראש ב${movement} לכיוון ${direction}`}>
+              <defs>
+                <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%"   stopColor="#e3c07f" stopOpacity=".28" />
+                  <stop offset="45%"  stopColor="#e3c07f" stopOpacity=".09" />
+                  <stop offset="100%" stopColor="#e3c07f" stopOpacity="0" />
+                </radialGradient>
+                <linearGradient id="tallit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#fffdf6" />
+                  <stop offset="50%"  stopColor="#ece5d5" />
+                  <stop offset="100%" stopColor="#b8b0a0" />
+                </linearGradient>
+                <linearGradient id="robe" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#2c3868" />
+                  <stop offset="100%" stopColor="#0f1631" />
+                </linearGradient>
+                <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#efd7b6" />
+                  <stop offset="100%" stopColor="#bb9871" />
+                </linearGradient>
+                <linearGradient id="kippah" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#3a4a86" />
+                  <stop offset="100%" stopColor="#1b2450" />
+                </linearGradient>
+                <linearGradient id="stripe" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#f6e3b4" />
+                  <stop offset="100%" stopColor="#a97b2e" />
+                </linearGradient>
+              </defs>
 
-          return (
-            <svg viewBox="0 0 300 400" className="w-40 h-52" role="img"
-                 aria-label={`שליח ציבור עם הראש ב${movement} לכיוון ${direction}`}>
-              <g id="body">
-                <path d="M 80 350 L 80 280 Q 85 265 100 260 L 150 240 L 200 260 Q 215 265 220 280 L 220 350 Q 220 360 210 360 L 90 360 Q 80 360 80 350 Z" 
-                      fill="#3a4a5a" stroke="#000" strokeWidth="3"/>
-                <ellipse cx="150" cy="245" rx="35" ry="12" fill="#fff" stroke="#000" strokeWidth="2"/>
-                <rect x="115" y="240" width="70" height="15" fill="#fff"/>
+              <circle cx="150" cy="188" r="150" fill="url(#halo)" />
+
+              {/* גלימה */}
+              <path d="M 36 392 C 36 308 86 268 150 260 C 214 268 264 308 264 392 Z" fill="url(#robe)" />
+              <path d="M 36 392 C 36 308 86 268 150 260 C 214 268 264 308 264 392"
+                    fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.6" />
+
+              {/* צוואר */}
+              <path d="M 130 268 L 130 224 L 170 224 L 170 268 Z" fill="url(#skin)" />
+              <path d="M 130 268 L 130 224 L 170 224 L 170 268 Z" fill="rgba(0,0,0,.28)" />
+
+              {/* הטלית - שני כנפיים על הכתפיים */}
+              <g>
+                <path d="M 134 262 C 119 282 108 332 106 392 L 141 392 L 148 264 Z" fill="url(#tallit)" />
+                <path d="M 166 262 C 181 282 192 332 194 392 L 159 392 L 152 264 Z" fill="url(#tallit)" />
+                <path d="M 119 336 L 116 392" stroke="url(#stripe)" strokeWidth="3.5" opacity="1" />
+                <path d="M 127 340 L 124 392" stroke="url(#stripe)" strokeWidth="1.8" opacity=".65" />
+                <path d="M 181 336 L 184 392" stroke="url(#stripe)" strokeWidth="3.5" opacity="1" />
+                <path d="M 173 340 L 176 392" stroke="url(#stripe)" strokeWidth="1.8" opacity=".65" />
+                {/* צל רך של הצוואר על הטלית */}
+                <path d="M 134 262 C 140 276 160 276 166 262 L 158 268 L 142 268 Z" fill="rgba(0,0,0,.18)" />
               </g>
 
-              <g id="neck">
-                <path d="M 130 240 L 130 210 Q 130 205 135 205 L 165 205 Q 170 205 170 210 L 170 240" 
-                      fill="#f4d4a8" stroke="#000" strokeWidth="2.5"/>
-              </g>
-
-              <g 
-                id="head" 
-                style={{
-                  transformOrigin: '150px 210px',
-                  transform: `rotate(${rotate}deg) translateY(${translateY}px)`,
-                  transition: 'transform 0.5s ease-out'
-                }}
-              >
-                <g id="left-payot">
-                  <path d="M 110 170 Q 105 180 108 190 Q 112 200 106 210 Q 102 220 105 230" 
-                        stroke="#3a2a1a" fill="none" strokeWidth="3.5" strokeLinecap="round"/>
-                  <path d="M 113 175 Q 110 185 112 195 Q 115 205 110 215" 
-                        stroke="#3a2a1a" fill="none" strokeWidth="2.5" strokeLinecap="round"/>
-                </g>
-
-                <g id="right-payot">
-                  <path d="M 190 170 Q 195 180 192 190 Q 188 200 194 210 Q 198 220 195 230" 
-                        stroke="#3a2a1a" fill="none" strokeWidth="3.5" strokeLinecap="round"/>
-                  <path d="M 187 175 Q 190 185 188 195 Q 185 205 190 215" 
-                        stroke="#3a2a1a" fill="none" strokeWidth="2.5" strokeLinecap="round"/>
-                </g>
-
-                <g id="left-ear">
-                  <ellipse cx="105" cy="165" rx="8" ry="15" fill="#f4d4a8" stroke="#000" strokeWidth="2"/>
-                  <ellipse cx="107" cy="165" rx="4" ry="8" fill="#e8c89a" stroke="#000" strokeWidth="1"/>
-                </g>
-
-                <g id="right-ear">
-                  <ellipse cx="195" cy="165" rx="8" ry="15" fill="#f4d4a8" stroke="#000" strokeWidth="2"/>
-                  <ellipse cx="193" cy="165" rx="4" ry="8" fill="#e8c89a" stroke="#000" strokeWidth="1"/>
-                </g>
-
-                <ellipse cx="150" cy="155" rx="45" ry="52" fill="#5a4a3a" stroke="#000" strokeWidth="3"/>
-
-                <path d="M 120 130 Q 125 135 125 145" stroke="#3a2a1a" fill="none" strokeWidth="1.5" opacity="0.5"/>
-                <path d="M 135 120 Q 137 130 138 145" stroke="#3a2a1a" fill="none" strokeWidth="1.5" opacity="0.5"/>
-                <path d="M 150 115 Q 150 130 150 145" stroke="#3a2a1a" fill="none" strokeWidth="1.5" opacity="0.5"/>
-                <path d="M 165 120 Q 163 130 162 145" stroke="#3a2a1a" fill="none" strokeWidth="1.5" opacity="0.5"/>
-                <path d="M 180 130 Q 175 135 175 145" stroke="#3a2a1a" fill="none" strokeWidth="1.5" opacity="0.5"/>
-
-                <g id="kippah">
-                  <ellipse cx="150" cy="120" rx="32" ry="18" fill="#4a6fa5" stroke="#000" strokeWidth="3"/>
-                  <path d="M 150 102 Q 140 110 135 120" stroke="#000" fill="none" strokeWidth="2"/>
-                  <path d="M 150 102 Q 160 110 165 120" stroke="#000" fill="none" strokeWidth="2"/>
-                  <ellipse cx="150" cy="120" rx="32" ry="18" fill="none" stroke="#000" strokeWidth="2.5"/>
-                </g>
+              <g className="figure__head"
+                 style={{ transformOrigin: '150px 262px',
+                          transform: `rotate(${rotate}deg) translateY(${translateY}px)` }}>
+                <ellipse cx="150" cy="182" rx="42" ry="50" fill="url(#skin)" />
+                {/* כיפה - יושבת על קודקוד הראש */}
+                <path d="M 120 153 C 120 123 180 123 180 153 Z" fill="url(#kippah)" />
+                <path d="M 120 153 C 120 123 180 123 180 153" fill="none"
+                      stroke="rgba(227,192,127,.6)" strokeWidth="1.5" />
               </g>
             </svg>
-          );
+
+            <div className="dirs" aria-hidden="true">
+              {DIRECTIONS.map((dir) => (
+                <span key={dir} className={`dirs__dot ${dir === direction ? 'is-on' : ''}`} />
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      /* ---------------- טבעת הציון ---------------- */
+
+      const ScoreRing = ({ score, total }) => {
+        const radius = 74;
+        const circumference = 2 * Math.PI * radius;
+        const ratio = total === 0 ? 0 : score / total;
+        const [offset, setOffset] = useState(circumference);
+
+        useEffect(() => {
+          const id = requestAnimationFrame(() => setOffset(circumference * (1 - ratio)));
+          return () => cancelAnimationFrame(id);
+        }, [circumference, ratio]);
+
+        return (
+          <div className="ring">
+            <svg width="168" height="168" viewBox="0 0 168 168" aria-hidden="true">
+              <defs>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%"   stopColor="#a97b2e" />
+                  <stop offset="55%"  stopColor="#e3c07f" />
+                  <stop offset="100%" stopColor="#fff3d6" />
+                </linearGradient>
+              </defs>
+              <circle className="ring__track" cx="84" cy="84" r={radius} fill="none" strokeWidth="6" />
+              <circle className="ring__value" cx="84" cy="84" r={radius} fill="none" strokeWidth="6"
+                      strokeDasharray={circumference} strokeDashoffset={offset} />
+            </svg>
+            <div className="ring__center">
+              <div className="ring__num">{Math.round(ratio * 100)}%</div>
+              <div className="ring__den">{score} מתוך {total}</div>
+            </div>
+          </div>
+        );
+      };
+
+      /* ---------------- המשחק ---------------- */
+
+      const BlessingGame = () => {
+        const [gameMode, setGameMode] = useState(null);
+        const [gameStarted, setGameStarted] = useState(false);
+        const [steps, setSteps] = useState(BLESSING_STEPS);
+        const [currentStep, setCurrentStep] = useState(0);
+        const [selectedMovement, setSelectedMovement] = useState(null);
+        const [selectedDirection, setSelectedDirection] = useState(null);
+        const [answers, setAnswers] = useState([]);
+        const [showFeedback, setShowFeedback] = useState(false);
+        const [finished, setFinished] = useState(false);
+        const [displayedPosition, setDisplayedPosition] = useState(START_POSITION);
+        const [bestScore, setBestScore] = useState(readBestScore);
+
+        // הטיימר של המשוב נשמר ב-ref כדי שאפשר יהיה לבטל אותו ביציאה מהמשחק,
+        // אחרת הוא היה ממשיך ומקדם את השלב אחרי איפוס.
+        const feedbackTimer = useRef(null);
+        const clearFeedbackTimer = () => {
+          if (feedbackTimer.current !== null) {
+            clearTimeout(feedbackTimer.current);
+            feedbackTimer.current = null;
+          }
         };
+        useEffect(() => clearFeedbackTimer, []);
 
-        const BlessingGame = () => {
-          const [gameMode, setGameMode] = useState(null);
-          const [gameStarted, setGameStarted] = useState(false);
-          const [steps, setSteps] = useState(BLESSING_STEPS);
-          const [currentStep, setCurrentStep] = useState(0);
-          const [selectedMovement, setSelectedMovement] = useState(null);
-          const [selectedDirection, setSelectedDirection] = useState(null);
-          const [answers, setAnswers] = useState([]);
-          const [showFeedback, setShowFeedback] = useState(false);
-          const [finished, setFinished] = useState(false);
-          const [displayedPosition, setDisplayedPosition] = useState(START_POSITION);
-          const [bestScore, setBestScore] = useState(readBestScore);
+        const currentWord = steps[currentStep];
+        const isLastStep = currentStep === steps.length - 1;
+        const score = answers.filter((answer) => answer.correct).length;
+        const mistakes = answers.filter((answer) => !answer.correct);
+        const isFullRun = steps.length === BLESSING_STEPS.length;
 
-          // הטיימר של המשוב נשמר ב-ref כדי שאפשר יהיה לבטל אותו ביציאה מהמשחק,
-          // אחרת הוא היה ממשיך ומקדם את השלב אחרי איפוס.
-          const feedbackTimer = useRef(null);
-          const clearFeedbackTimer = () => {
-            if (feedbackTimer.current !== null) {
-              clearTimeout(feedbackTimer.current);
-              feedbackTimer.current = null;
-            }
-          };
-          useEffect(() => clearFeedbackTimer, []);
+        const finish = useCallback((finalAnswers) => {
+          setFinished(true);
+          if (gameMode === 'test' && isFullRun) {
+            const finalScore = finalAnswers.filter((answer) => answer.correct).length;
+            setBestScore((previous) => {
+              if (previous !== null && previous >= finalScore) return previous;
+              writeBestScore(finalScore);
+              return finalScore;
+            });
+          }
+        }, [gameMode, isFullRun]);
 
-          const currentWord = steps[currentStep];
-          const isLastStep = currentStep === steps.length - 1;
-          const score = answers.filter((answer) => answer.correct).length;
-          const mistakes = answers.filter((answer) => !answer.correct);
+        const checkIfComplete = (movement, direction) => {
+          if (!movement || !direction) return;
 
-          const finish = useCallback((finalAnswers) => {
-            setFinished(true);
-            if (gameMode === 'test') {
-              const finalScore = finalAnswers.filter((answer) => answer.correct).length;
-              setBestScore((previous) => {
-                if (previous !== null && previous >= finalScore) return previous;
-                writeBestScore(finalScore);
-                return finalScore;
-              });
-            }
-          }, [gameMode]);
+          const correct = movement === currentWord.movement && direction === currentWord.direction;
+          const answer = { ...currentWord, givenMovement: movement, givenDirection: direction, correct };
+          const nextAnswers = [...answers, answer];
 
-          const checkIfComplete = (movement, direction) => {
-            if (!movement || !direction) return;
+          setAnswers(nextAnswers);
+          setShowFeedback(true);
 
-            const correct = movement === currentWord.movement && direction === currentWord.direction;
-            const answer = { ...currentWord, givenMovement: movement, givenDirection: direction, correct };
-            const nextAnswers = [...answers, answer];
-
-            setAnswers(nextAnswers);
-            setShowFeedback(true);
-
-            clearFeedbackTimer();
-            feedbackTimer.current = setTimeout(() => {
-              feedbackTimer.current = null;
-              setDisplayedPosition({ movement: currentWord.movement, direction: currentWord.direction });
-              setShowFeedback(false);
-              setSelectedMovement(null);
-              setSelectedDirection(null);
-              if (isLastStep) {
-                finish(nextAnswers);
-              } else {
-                setCurrentStep((step) => step + 1);
-              }
-            }, FEEDBACK_MS);
-          };
-
-          const handleMovementClick = (movement) => {
-            if (showFeedback || gameMode === 'training') return;
-            setSelectedMovement(movement);
-            checkIfComplete(movement, selectedDirection);
-          };
-
-          const handleDirectionClick = (direction) => {
-            if (showFeedback || gameMode === 'training') return;
-            setSelectedDirection(direction);
-            checkIfComplete(selectedMovement, direction);
-          };
-
-          const nextStep = useCallback(() => {
-            setCurrentStep((step) => Math.min(step + 1, steps.length - 1));
-          }, [steps.length]);
-
-          const prevStep = useCallback(() => {
-            setCurrentStep((step) => Math.max(step - 1, 0));
-          }, []);
-
-          // המסך מבטיח "השתמש בחיצים לדפדוף" - אז גם חיצי המקלדת חייבים לעבוד.
-          // ב-RTL חץ שמאלה מתקדם וחץ ימינה חוזר, בדיוק כמו הכפתורים.
-          useEffect(() => {
-            if (gameMode !== 'training' || !gameStarted || finished) return undefined;
-            const onKeyDown = (event) => {
-              if (event.key === 'ArrowLeft') {
-                event.preventDefault();
-                nextStep();
-              } else if (event.key === 'ArrowRight') {
-                event.preventDefault();
-                prevStep();
-              }
-            };
-            window.addEventListener('keydown', onKeyDown);
-            return () => window.removeEventListener('keydown', onKeyDown);
-          }, [gameMode, gameStarted, finished, nextStep, prevStep]);
-
-          const restartWith = (nextSteps) => {
-            clearFeedbackTimer();
-            setSteps(nextSteps);
-            setCurrentStep(0);
+          clearFeedbackTimer();
+          feedbackTimer.current = setTimeout(() => {
+            feedbackTimer.current = null;
+            setDisplayedPosition({ movement: currentWord.movement, direction: currentWord.direction });
+            setShowFeedback(false);
             setSelectedMovement(null);
             setSelectedDirection(null);
-            setAnswers([]);
-            setShowFeedback(false);
-            setFinished(false);
-            setDisplayedPosition(START_POSITION);
-          };
-
-          const reset = () => {
-            restartWith(BLESSING_STEPS);
-            setGameMode(null);
-            setGameStarted(false);
-          };
-
-          const startGame = (mode) => {
-            restartWith(BLESSING_STEPS);
-            setGameMode(mode);
-            setGameStarted(true);
-          };
-
-          const movementCorrect = selectedMovement === currentWord.movement;
-          const directionCorrect = selectedDirection === currentWord.direction;
-          const bothCorrect = movementCorrect && directionCorrect;
-
-          const headPosition = (() => {
-            if (gameMode === 'training' || showFeedback) return currentWord;
-            if (selectedMovement && selectedDirection) {
-              return { movement: selectedMovement, direction: selectedDirection };
+            if (isLastStep) {
+              finish(nextAnswers);
+            } else {
+              setCurrentStep((step) => step + 1);
             }
-            return displayedPosition;
-          })();
+          }, FEEDBACK_MS);
+        };
 
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
-              <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
-                <h1 className="text-xl sm:text-2xl font-bold text-center mb-2 text-indigo-900">
-                  הטיית הראש של הש"ץ בעת אמירתו ברכת כהנים
-                </h1>
-                <p className="text-center text-gray-600 mb-4">
-                  {!gameStarted
-                    ? 'תרגול הטיות הראש לאורך כל הברכה'
-                    : gameMode === 'training'
-                      ? 'דפדף בין המילים וראה את התנועות הנכונות'
-                      : 'בחר תנועה וכיוון לכל מילה'}
-                </p>
+        const handleMovementClick = (movement) => {
+          if (showFeedback || gameMode === 'training') return;
+          setSelectedMovement(movement);
+          checkIfComplete(movement, selectedDirection);
+        };
 
-                {gameStarted && !finished && (
-                  <div
-                    className="w-full bg-gray-200 rounded-full h-3 mb-6"
-                    role="progressbar"
-                    aria-valuemin={1}
-                    aria-valuemax={steps.length}
-                    aria-valuenow={currentStep + 1}
-                    aria-label="התקדמות בברכה"
+        const handleDirectionClick = (direction) => {
+          if (showFeedback || gameMode === 'training') return;
+          setSelectedDirection(direction);
+          checkIfComplete(selectedMovement, direction);
+        };
+
+        const nextStep = useCallback(() => {
+          setCurrentStep((step) => Math.min(step + 1, steps.length - 1));
+        }, [steps.length]);
+
+        const prevStep = useCallback(() => {
+          setCurrentStep((step) => Math.max(step - 1, 0));
+        }, []);
+
+        // המסך מבטיח דפדוף בחיצים - אז גם חיצי המקלדת חייבים לעבוד.
+        // ב-RTL חץ שמאלה מתקדם וחץ ימינה חוזר, בדיוק כמו הכפתורים.
+        useEffect(() => {
+          if (gameMode !== 'training' || !gameStarted || finished) return undefined;
+          const onKeyDown = (event) => {
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault();
+              nextStep();
+            } else if (event.key === 'ArrowRight') {
+              event.preventDefault();
+              prevStep();
+            }
+          };
+          window.addEventListener('keydown', onKeyDown);
+          return () => window.removeEventListener('keydown', onKeyDown);
+        }, [gameMode, gameStarted, finished, nextStep, prevStep]);
+
+        const restartWith = (nextSteps) => {
+          clearFeedbackTimer();
+          setSteps(nextSteps);
+          setCurrentStep(0);
+          setSelectedMovement(null);
+          setSelectedDirection(null);
+          setAnswers([]);
+          setShowFeedback(false);
+          setFinished(false);
+          setDisplayedPosition(START_POSITION);
+        };
+
+        const reset = () => {
+          restartWith(BLESSING_STEPS);
+          setGameMode(null);
+          setGameStarted(false);
+        };
+
+        const startGame = (mode) => {
+          restartWith(BLESSING_STEPS);
+          setGameMode(mode);
+          setGameStarted(true);
+        };
+
+        const movementCorrect = selectedMovement === currentWord.movement;
+        const directionCorrect = selectedDirection === currentWord.direction;
+        const bothCorrect = movementCorrect && directionCorrect;
+
+        const headPosition = (() => {
+          if (gameMode === 'training' || showFeedback) return currentWord;
+          if (selectedMovement && selectedDirection) {
+            return { movement: selectedMovement, direction: selectedDirection };
+          }
+          return displayedPosition;
+        })();
+
+        const optionClass = (option, correctValue, selectedValue) => {
+          const isSelected = selectedValue === option;
+          const isCorrect = option === correctValue;
+
+          if (gameMode === 'training') {
+            return isCorrect ? 'opt is-correct' : 'opt is-muted';
+          }
+          if (showFeedback) {
+            if (isCorrect) return 'opt is-correct';
+            if (isSelected) return 'opt is-wrong';
+            return 'opt is-muted';
+          }
+          return isSelected ? 'opt is-selected' : 'opt';
+        };
+
+        /* ------- מסך פתיחה ------- */
+
+        const renderHome = () => (
+          <div className="home">
+            <div className="home__mark"><BookIcon size={34} /></div>
+            <div className="eyebrow">ברכת כהנים</div>
+            <h1 className="title">הטיית הראש של הש"ץ<br />בעת אמירת ברכת כהנים</h1>
+            <p className="subtitle">תרגול {BLESSING_STEPS.length} המילים - תנועה וכיוון לכל מילה</p>
+
+            <div className="panel">
+              <h3>איך משחקים</h3>
+              <p><strong>מצב למידה</strong> - דפדוף בין המילים עם החיצים שעל המסך או עם חיצי המקלדת, כשהתנועה והכיוון הנכונים מסומנים.</p>
+              <p><strong>מצב מבחן</strong> - בוחרים תנועה וכיוון לכל מילה ומקבלים משוב מיידי. בסיום מוצג הציון וסיכום הטעויות.</p>
+            </div>
+
+            {bestScore !== null && (
+              <div className="best"><CrownIcon /> השיא שלך: {bestScore} מתוך {BLESSING_STEPS.length}</div>
+            )}
+
+            <div className="modes">
+              <button className="mode" onClick={() => startGame('test')}>
+                <span className="mode__icon"><TargetIcon /></span>
+                <div className="mode__name">מצב מבחן</div>
+                <div className="mode__desc">בדיקת ידע עם ציון וסיכום טעויות</div>
+              </button>
+              <button className="mode mode--learn" onClick={() => startGame('training')}>
+                <span className="mode__icon"><BookIcon /></span>
+                <div className="mode__name">מצב למידה</div>
+                <div className="mode__desc">דפדוף רגוע עם התשובות הנכונות</div>
+              </button>
+            </div>
+          </div>
+        );
+
+        /* ------- מסך משחק ------- */
+
+        const renderStage = () => (
+          <div className="stage">
+            <div className="meta">
+              <span className={`chip ${gameMode === 'training' ? 'chip--jade' : 'chip--gold'}`}>
+                {gameMode === 'training' ? <BookIcon size={14} /> : <TargetIcon size={14} />}
+                {gameMode === 'training' ? 'מצב למידה' : 'מצב מבחן'}
+              </span>
+              <span className="meta__right">
+                <span className="counter"><b>{pad(currentStep + 1)}</b> / {pad(steps.length)}</span>
+                {gameMode === 'test' && <span className="tally">ציון <b>{score}</b></span>}
+              </span>
+            </div>
+
+            <div className="rail" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length}
+                 aria-valuenow={currentStep + 1} aria-label="התקדמות בברכה">
+              <div className="rail__fill" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
+              <span className="rail__dot" style={{ insetInlineStart: `${((currentStep + 1) / steps.length) * 100}%` }} />
+            </div>
+
+            <div className="figure-wrap">
+              <Cantor movement={headPosition.movement} direction={headPosition.direction} />
+            </div>
+
+            <div className="word" key={`${currentStep}-${steps.length}`}>{currentWord.word}</div>
+            <div className="prompt">
+              {gameMode === 'training' ? 'התנועה והכיוון הנכונים' : 'בחר תנועה וכיוון'}
+            </div>
+
+            <div className="rule" />
+
+            <div className="group__label">תנועה</div>
+            <div className="group group--row">
+              {MOVEMENTS.map((movement) => {
+                const cls = optionClass(movement, currentWord.movement, selectedMovement);
+                return (
+                  <button
+                    key={movement}
+                    className={cls}
+                    onClick={() => handleMovementClick(movement)}
+                    disabled={gameMode === 'training' || showFeedback}
+                    aria-pressed={gameMode === 'test' ? selectedMovement === movement : undefined}
                   >
-                    <div
-                      className="bg-indigo-600 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-                    />
-                  </div>
-                )}
+                    {cls.includes('is-correct') && <CheckIcon size={17} className="opt__icon" />}
+                    {cls.includes('is-wrong') && <CrossIcon size={17} className="opt__icon" />}
+                    {movement}
+                  </button>
+                );
+              })}
+            </div>
 
-                {!gameStarted ? (
-                  <div className="text-center py-4">
-                    <div className="text-6xl mb-4">📖</div>
-                    <h2 className="text-2xl font-bold text-indigo-900 mb-4">
-                      ברוכים הבאים למשחק תרגול ברכת כהנים
-                    </h2>
+            <div className="rule" />
 
-                    <div className="text-right bg-blue-50 rounded-xl p-4 mb-4 max-w-xl mx-auto">
-                      <h3 className="text-xl font-bold text-indigo-800 mb-4">איך משחקים?</h3>
-                      <div className="space-y-3 text-gray-700">
-                        <p><strong>מצב למידה:</strong> דפדף בין המילים עם החיצים (גם חיצי המקלדת עובדים) וראה את התנועות הנכונות</p>
-                        <p><strong>מצב מבחן:</strong> בחר בעצמך את התנועה והכיוון לכל מילה, ובסוף קבל סיכום של הטעויות</p>
-                      </div>
-                    </div>
+            <div className="group__label">כיוון</div>
+            <div className="group group--row">
+              {DIRECTIONS.map((direction) => {
+                const cls = optionClass(direction, currentWord.direction, selectedDirection);
+                return (
+                  <button
+                    key={direction}
+                    className={cls}
+                    onClick={() => handleDirectionClick(direction)}
+                    disabled={gameMode === 'training' || showFeedback}
+                    aria-pressed={gameMode === 'test' ? selectedDirection === direction : undefined}
+                  >
+                    {cls.includes('is-correct') && <CheckIcon size={17} className="opt__icon" />}
+                    {cls.includes('is-wrong') && <CrossIcon size={17} className="opt__icon" />}
+                    {direction}
+                  </button>
+                );
+              })}
+            </div>
 
-                    <div className="text-gray-600 mb-2">
-                      המשחק עובר על כל {BLESSING_STEPS.length} המילים בברכת כהנים
-                    </div>
-
-                    {bestScore !== null && (
-                      <div className="text-indigo-700 font-semibold mb-4">
-                        🏆 השיא שלך: {bestScore} מתוך {BLESSING_STEPS.length}
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-4 justify-center mt-4">
-                      <button
-                        onClick={() => startGame('test')}
-                        className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-xl font-semibold hover:bg-indigo-700 transition-all transform hover:scale-105"
-                      >
-                        📝 מצב מבחן
-                        <div className="text-sm font-normal mt-1">בדיקת ידע</div>
-                      </button>
-                      <button
-                        onClick={() => startGame('training')}
-                        className="bg-green-600 text-white px-8 py-4 rounded-xl text-xl font-semibold hover:bg-green-700 transition-all transform hover:scale-105"
-                      >
-                        🎓 מצב למידה
-                        <div className="text-sm font-normal mt-1">למידה ודפדוף</div>
-                      </button>
-                    </div>
-                  </div>
-                ) : !finished ? (
-                  <>
-                    <div className="text-center mb-4">
-                      <span className={`inline-block px-4 py-1 rounded-full text-sm font-semibold ${
-                        gameMode === 'training' ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800'
-                      }`}>
-                        {gameMode === 'training' ? '🎓 מצב למידה' : '📝 מצב מבחן'}
-                      </span>
-                    </div>
-
-                    <div className="text-center mb-6">
-                      <div className="text-sm text-gray-500 mb-2">
-                        מילה {currentStep + 1} מתוך {steps.length}
-                      </div>
-
-                      <div className="flex justify-center mb-3">
-                        <HeadFigure movement={headPosition.movement} direction={headPosition.direction} />
-                      </div>
-
-                      <div className="text-4xl sm:text-5xl font-bold text-indigo-900 mb-3">
-                        {currentWord.word}
-                      </div>
-                    </div>
-
-                    {gameMode === 'training' ? (
-                      <>
-                        <div className="flex flex-col items-center gap-4 mb-6">
-                          <div className="flex flex-col gap-3">
-                            {MOVEMENTS.map((movement) => {
-                              const isCorrect = movement === currentWord.movement;
-
-                              return (
-                                <div
-                                  key={movement}
-                                  className={`
-                                    px-8 sm:px-12 py-4 rounded-xl text-xl font-semibold text-center
-                                    ${isCorrect ? 'bg-green-500 text-white ring-4 ring-green-300' : 'bg-gray-200 text-gray-500'}
-                                  `}
-                                >
-                                  {movement}
-                                  {isCorrect && <Check />}
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                          <div className="w-full border-t-2 border-gray-300"></div>
-
-                          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                            {DIRECTIONS.map((direction) => {
-                              const isCorrect = direction === currentWord.direction;
-
-                              return (
-                                <div
-                                  key={direction}
-                                  className={`
-                                    px-6 sm:px-8 py-4 rounded-xl text-xl font-semibold
-                                    ${isCorrect ? 'bg-green-500 text-white ring-4 ring-green-300' : 'bg-gray-200 text-gray-500'}
-                                  `}
-                                >
-                                  {direction}
-                                  {isCorrect && <Check />}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <div className="flex justify-center gap-6 sm:gap-8 items-center mb-4">
-                          <button
-                            onClick={prevStep}
-                            disabled={currentStep === 0}
-                            aria-label="המילה הקודמת"
-                            className="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <ChevronRight />
-                          </button>
-
-                          <div className="text-gray-600 font-semibold text-center text-sm sm:text-base">
-                            השתמש בחיצים לדפדוף
-                          </div>
-
-                          <button
-                            onClick={nextStep}
-                            disabled={isLastStep}
-                            aria-label="המילה הבאה"
-                            className="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <ChevronLeft />
-                          </button>
-                        </div>
-
-                        {isLastStep && (
-                          <div className="text-center mb-4">
-                            <button
-                              onClick={() => finish(answers)}
-                              className="bg-green-600 text-white px-8 py-3 rounded-xl text-lg font-semibold hover:bg-green-700 transition-all"
-                            >
-                              סיימתי לעבור על הברכה
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex flex-col items-center gap-4 mb-6">
-                          <div className="flex flex-col gap-3">
-                            {MOVEMENTS.map((movement) => {
-                              const isSelected = selectedMovement === movement;
-                              const isCorrect = movement === currentWord.movement;
-                              const showCorrect = showFeedback && isCorrect;
-                              const showWrong = showFeedback && isSelected && !isCorrect;
-
-                              return (
-                                <button
-                                  key={movement}
-                                  onClick={() => handleMovementClick(movement)}
-                                  disabled={showFeedback}
-                                  aria-pressed={isSelected}
-                                  className={`
-                                    px-8 sm:px-12 py-4 rounded-xl text-xl font-semibold transition-all transform hover:scale-105
-                                    ${isSelected && !showFeedback ? 'ring-4 ring-indigo-300' : ''}
-                                    ${showCorrect ? 'bg-green-500 text-white' : ''}
-                                    ${showWrong ? 'bg-red-500 text-white' : ''}
-                                    ${!showFeedback && !isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
-                                    ${!showFeedback && isSelected ? 'bg-indigo-700 text-white' : ''}
-                                    ${showFeedback && !showCorrect && !showWrong ? 'bg-gray-200 text-gray-500' : ''}
-                                    disabled:cursor-not-allowed
-                                  `}
-                                >
-                                  {movement}
-                                  {showCorrect && <Check />}
-                                  {showWrong && <X />}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          <div className="w-full border-t-2 border-gray-300"></div>
-
-                          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                            {DIRECTIONS.map((direction) => {
-                              const isSelected = selectedDirection === direction;
-                              const isCorrect = direction === currentWord.direction;
-                              const showCorrect = showFeedback && isCorrect;
-                              const showWrong = showFeedback && isSelected && !isCorrect;
-
-                              return (
-                                <button
-                                  key={direction}
-                                  onClick={() => handleDirectionClick(direction)}
-                                  disabled={showFeedback}
-                                  aria-pressed={isSelected}
-                                  className={`
-                                    px-6 sm:px-8 py-4 rounded-xl text-xl font-semibold transition-all transform hover:scale-105
-                                    ${isSelected && !showFeedback ? 'ring-4 ring-indigo-300' : ''}
-                                    ${showCorrect ? 'bg-green-500 text-white' : ''}
-                                    ${showWrong ? 'bg-red-500 text-white' : ''}
-                                    ${!showFeedback && !isSelected ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
-                                    ${!showFeedback && isSelected ? 'bg-indigo-700 text-white' : ''}
-                                    ${showFeedback && !showCorrect && !showWrong ? 'bg-gray-200 text-gray-500' : ''}
-                                    disabled:cursor-not-allowed
-                                  `}
-                                >
-                                  {direction}
-                                  {showCorrect && <Check />}
-                                  {showWrong && <X />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* גובה קבוע כדי שהמשוב לא יקפיץ את הפריסה */}
-                        <div className="text-center text-lg font-semibold mb-4 h-16 flex items-center justify-center" aria-live="polite">
-                          {showFeedback && (
-                            <div className={bothCorrect ? 'text-green-600' : 'text-red-600'}>
-                              {bothCorrect ? (
-                                '✓ נכון מצוין!'
-                              ) : (
-                                <div>
-                                  {!movementCorrect && <div>✗ תנועה נכונה: {currentWord.movement}</div>}
-                                  {!directionCorrect && <div>✗ כיוון נכון: {currentWord.direction}</div>}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </>
+            {gameMode === 'test' ? (
+              <div className="feedback" aria-live="polite">
+                {showFeedback && (bothCorrect ? (
+                  <div className="feedback__good">נכון. יפה מאוד.</div>
                 ) : (
-                  <div className="text-center py-6">
-                    <div className="text-6xl mb-3">{gameMode === 'test' && mistakes.length === 0 ? '🏆' : '🎉'}</div>
-                    <h2 className="text-3xl font-bold text-indigo-900 mb-3">
-                      כל הכבוד!
-                    </h2>
-                    <p className="text-xl text-gray-700 mb-2">
-                      סיימת את {steps.length === BLESSING_STEPS.length ? 'כל הברכה' : 'תרגול הטעויות'} ב{gameMode === 'training' ? 'מצב למידה' : 'מצב מבחן'}
-                    </p>
-
-                    {gameMode === 'test' && (
-                      <>
-                        <p className="text-2xl font-bold text-indigo-600 mb-1">
-                          ציון: {score} מתוך {steps.length} ({Math.round((score / steps.length) * 100)}%)
-                        </p>
-                        {bestScore !== null && steps.length === BLESSING_STEPS.length && (
-                          <p className="text-gray-600 mb-4">
-                            🏆 השיא שלך: {bestScore} מתוך {BLESSING_STEPS.length}
-                          </p>
-                        )}
-
-                        {mistakes.length > 0 && (
-                          <div className="text-right bg-red-50 rounded-xl p-4 mb-6 max-w-xl mx-auto">
-                            <h3 className="text-lg font-bold text-red-800 mb-3">
-                              מילים לחזרה ({mistakes.length}):
-                            </h3>
-                            <ul className="space-y-2">
-                              {mistakes.map((mistake, index) => (
-                                <li key={`${mistake.word}-${index}`} className="text-gray-700">
-                                  <span className="font-bold text-indigo-900">{mistake.word}</span>
-                                  {' — הנכון: '}
-                                  <span className="font-semibold text-green-700">{mistake.movement} / {mistake.direction}</span>
-                                  {' , בחרת: '}
-                                  <span className="text-red-700">{mistake.givenMovement} / {mistake.givenDirection}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    <div className="flex flex-wrap gap-4 justify-center mt-4">
-                      <button
-                        onClick={reset}
-                        className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-all inline-flex items-center gap-2"
-                      >
-                        <RotateCcw />
-                        חזור למסך הבית
-                      </button>
-                      <button
-                        onClick={() => restartWith(BLESSING_STEPS)}
-                        className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-green-700 transition-all"
-                      >
-                        שחק שוב באותו מצב
-                      </button>
-                      {gameMode === 'test' && mistakes.length > 0 && (
-                        <button
-                          onClick={() => restartWith(mistakes.map((mistake) => ({
-                            word: mistake.word,
-                            movement: mistake.movement,
-                            direction: mistake.direction
-                          })))}
-                          className="bg-amber-500 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-amber-600 transition-all"
-                        >
-                          🔁 תרגל רק את הטעויות
-                        </button>
-                      )}
-                    </div>
+                  <div className="feedback__bad">
+                    {!movementCorrect && <div>התנועה הנכונה: <b>{currentWord.movement}</b></div>}
+                    {!directionCorrect && <div>הכיוון הנכון: <b>{currentWord.direction}</b></div>}
                   </div>
-                )}
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="nav">
+                  <button className="nav__btn" onClick={prevStep} disabled={currentStep === 0}
+                          aria-label="המילה הקודמת">
+                    <ArrowBack />
+                  </button>
+                  <div className="nav__hint"><kbd>←</kbd><span>דפדוף</span><kbd>→</kbd></div>
+                  <button className="nav__btn" onClick={nextStep} disabled={isLastStep}
+                          aria-label="המילה הבאה">
+                    <ArrowNext />
+                  </button>
+                </div>
 
-                {gameStarted && !finished && gameMode === 'test' && (
-                  <div className="text-center text-gray-600">
-                    <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
-                      <span className="font-semibold">ציון:</span>
-                      <span className="text-indigo-600 font-bold">{score}</span>
-                    </div>
-                  </div>
-                )}
-
-                {gameStarted && !finished && (
-                  <div className="text-center mt-6 flex flex-wrap gap-4 justify-center">
-                    {currentStep > 0 && (
-                      <button
-                        onClick={() => restartWith(steps)}
-                        className="text-gray-500 hover:text-gray-700 text-sm inline-flex items-center gap-1"
-                      >
-                        <RotateCcw size={16} />
-                        חזור להתחלה
-                      </button>
-                    )}
-                    <button
-                      onClick={reset}
-                      className="text-gray-500 hover:text-gray-700 text-sm inline-flex items-center gap-1"
-                    >
-                      ← חזור למסך הבחירה
+                {isLastStep && (
+                  <div className="actions">
+                    <button className="btn btn--gold" onClick={() => finish(answers)}>
+                      סיימתי לעבור על הברכה
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
-          );
-        };
+              </>
+            )}
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<BlessingGame />);
+            <div className="footer-actions">
+              {currentStep > 0 && (
+                <button className="btn btn--ghost" onClick={() => restartWith(steps)}>
+                  <ReplayIcon size={15} /> התחל מחדש
+                </button>
+              )}
+              <button className="btn btn--ghost" onClick={reset}>
+                <HomeIcon size={15} /> חזרה למסך הבחירה
+              </button>
+            </div>
+          </div>
+        );
+
+        /* ------- מסך סיום ------- */
+
+        const renderResult = () => (
+          <div className="result">
+            <div className="eyebrow">{isFullRun ? 'סיום הברכה' : 'סיום תרגול הטעויות'}</div>
+
+            {gameMode === 'test' ? (
+              <ScoreRing score={score} total={steps.length} />
+            ) : (
+              <div className="home__mark" style={{ marginBottom: 18 }}><CheckIcon size={34} /></div>
+            )}
+
+            <h2 className="title">
+              {gameMode === 'training'
+                ? 'עברת על כל הברכה'
+                : mistakes.length === 0
+                  ? 'ללא טעות אחת'
+                  : 'כל הכבוד, יש עוד מה לחדד'}
+            </h2>
+
+            {gameMode === 'test' && bestScore !== null && isFullRun && (
+              <p className="subtitle"><CrownIcon /> השיא שלך: {bestScore} מתוך {BLESSING_STEPS.length}</p>
+            )}
+
+            {gameMode === 'test' && mistakes.length > 0 && (
+              <div className="review">
+                <div className="review__head">
+                  <span>מילים לחזרה</span>
+                  <span>{mistakes.length}</span>
+                </div>
+                {mistakes.map((mistake, index) => (
+                  <div className="review__row" key={`${mistake.word}-${index}`}>
+                    <span className="review__word">{mistake.word}</span>
+                    <span className="review__answers">
+                      <span className="review__right">{mistake.movement} · {mistake.direction}</span>
+                      <span className="review__wrong">{mistake.givenMovement} · {mistake.givenDirection}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="actions">
+              {gameMode === 'test' && mistakes.length > 0 && (
+                <button
+                  className="btn btn--gold"
+                  onClick={() => restartWith(mistakes.map((mistake) => ({
+                    word: mistake.word,
+                    movement: mistake.movement,
+                    direction: mistake.direction
+                  })))}
+                >
+                  <TargetIcon size={17} /> תרגל רק את הטעויות
+                </button>
+              )}
+              <button className="btn" onClick={() => restartWith(BLESSING_STEPS)}>
+                <ReplayIcon size={17} /> שחק שוב באותו מצב
+              </button>
+              <button className="btn" onClick={reset}>
+                <HomeIcon size={17} /> חזרה למסך הבית
+              </button>
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="shell">
+            <main className="card">
+              {!gameStarted ? renderHome() : finished ? renderResult() : renderStage()}
+            </main>
+          </div>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<BlessingGame />);
     </script>
 </body>
 </html>
